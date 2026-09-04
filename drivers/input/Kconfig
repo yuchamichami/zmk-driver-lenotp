@@ -1,0 +1,20 @@
+menuconfig INPUT_LENOTP
+    bool "lenoTP I2C module"
+    default y
+    depends on GPIO
+    depends on I2C
+    depends on INPUT
+    depends on DT_HAS_LENOTP_ENABLED
+    help
+      Enable lenoTP I2C support.
+
+if INPUT_LENOTP
+
+config INPUT_LENOTP_INIT_PRIORITY
+    int "lenoTP initialization priority"
+    default INPUT_INIT_PRIORITY
+    help
+      Driver initialization priority for lenoTP.
+      Lower values initialize earlier.
+
+endif # INPUT_LENOTP

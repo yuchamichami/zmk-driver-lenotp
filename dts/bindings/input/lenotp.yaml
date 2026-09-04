@@ -1,0 +1,95 @@
+# SPDX-License-Identifier: MIT
+
+description: lenoTP I2C device.
+
+compatible: "lenotp"
+
+include: i2c-device.yaml
+
+properties:
+  int-gpios:
+    type: phandle-array
+    required: true
+    description: |
+      Interrupt pin. The lenoTP drives this low when a report is ready, so
+      this is normally GPIO_ACTIVE_LOW with GPIO_PULL_UP.
+
+  power-gpios:
+    type: phandle-array
+    description: |
+      Optional GPIO connected to an external load switch or power-enable pin
+      for the lenoTP. The driver drives it active during init/resume.
+
+  invert-x:
+    type: boolean
+    description: Invert X-axis relative movement.
+
+  invert-y:
+    type: boolean
+    description: Invert Y-axis relative movement.
+
+  swap-xy:
+    type: boolean
+    description: Swap X and Y relative movement before inversion and scaling.
+
+  x-divisor:
+    type: int
+    default: 1
+    description: |
+      Divide X-axis movement by this value after axis transforms. Non-zero
+      movement is preserved as at least one count.
+
+  y-divisor:
+    type: int
+    default: 1
+    description: |
+      Divide Y-axis movement by this value after axis transforms. Non-zero
+      movement is preserved as at least one count.
+
+  ignore-buttons:
+    type: boolean
+    description: |
+      Ignore button bits from the lenoTP packet.
+
+  startup-delay-ms:
+    type: int
+    default: 100
+    description: |
+      Delay after driver startup before optional commands and pending report
+      reads.
+
+  poll-period-ms:
+    type: int
+    default: 15
+    description: |
+      Delay before reading another report if the interrupt line is still
+      active after a report is read.
+
+  wakeup-on-init:
+    type: boolean
+    description: Send the Wake up command during driver initialization.
+
+  reset-on-init:
+    type: boolean
+    description: Send the Reset command during driver initialization.
+
+  exit-idle-on-init:
+    type: boolean
+    description: Send the Exit idle mode command during driver initialization.
+
+  sleep-on-suspend:
+    type: boolean
+    description: |
+      Send the Sleep command when Zephyr device PM suspends this driver. If
+      power-gpios and power-off-on-suspend are both configured, the driver
+      powers the device off instead of sending the Sleep command.
+
+  wakeup-on-resume:
+    type: boolean
+    description: Send the Wake up command when Zephyr device PM resumes this driver.
+
+  power-off-on-suspend:
+    type: boolean
+    description: |
+      Drive power-gpios inactive during suspend. This requires external
+      hardware that safely switches the lenoTP supply.
