@@ -351,6 +351,30 @@ static void lenotp_report_input(const struct device *dev, const struct lenotp_re
     }
 }
 
+static bool lenotp_reschedule_if_int_active(const struct device *dev) {
+    const struct lenotp_config *config = dev->config;
+    struct lenotp_data *data = dev->data;
+    int active;
+
+    if (data->suspended) {
+        return false;
+    }
+
+    active = gpio_pin_get_dt(&config->int_gpio);
+    if (active < 0) {
+        LOG_WRN("Failed to read INT pin: %d", active);
+        return false;
+    }
+
+    if (active == 0) {
+        return false;
+    }
+
+    k_work_reschedule(&data->work, K_MSEC(config->poll_period_ms));
+
+    return true;
+}
+
 static void lenotp_work_handler(struct k_work *work) {
     struct k_work_delayable *dwork = k_work_delayable_from_work(work);
     struct lenotp_data *data = CONTAINER_OF(dwork, struct lenotp_data, work);
@@ -377,15 +401,16 @@ static void lenotp_work_handler(struct k_work *work) {
     ret = lenotp_read_report(dev, &report);
     if (ret < 0) {
         LOG_WRN("Failed to read report: %d", ret);
+        if (lenotp_reschedule_if_int_active(dev)) {
+            return;
+        }
         goto enable_interrupt;
     }
 
     LOG_DBG("buttons=%02x x=%d y=%d", report.buttons, report.x, report.y);
     lenotp_report_input(dev, &report);
 
-    active = gpio_pin_get_dt(&config->int_gpio);
-    if (!data->suspended && active > 0) {
-        k_work_reschedule(&data->work, K_MSEC(config->poll_period_ms));
+    if (lenotp_reschedule_if_int_active(dev)) {
         return;
     }
 
