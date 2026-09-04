@@ -1,7 +1,5 @@
 /*
  * Copyright (c) 2026
- *
- * SPDX-License-Identifier: MIT
  */
 
 #define DT_DRV_COMPAT lenotp
